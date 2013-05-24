@@ -1,0 +1,35 @@
+
+<html>
+	<head>
+		<title>Options</title>
+	</head>
+	<body>
+		<div id="Options">
+		  <div id="AddEmailTemplate">
+			<label>Template name</label><br>
+			<input type="text" id="TemplateName" title="template name" name="Template Name"><br>
+			<label>Template group</label><br>
+			<input type="text" id="TemplateGroup" title="template Group" name="Template Group"><br>
+			<label>Email Body</label><br>
+			<textarea id="EmailBody" title="Email body"  name="Email body" rows="25" cols="40"></textarea>
+			<textarea id="DBDisplay" title="Database display" name="Database Display" rows="25" cols="30"></textarea>
+		  </div>
+			  <div id="CustomVariable">
+				<select id="CustomDropdown"> 
+					<option value="[Custom1]" name="Custom1">Custom1</option>
+					<option value="[Custom2]" name="Custom2">Custom2</option>
+					<option value="[Custom3]" name="Custom3">Custom3</option>
+					<option value="[Custom4]" name="Custom4">Custom4</option>
+					<option value="[Custom5]" name="Custom5">Custom5</option>
+				</select>
+				<button id="CustomEdit" title="edit">Edit</button>
+				<button id="CustomAdd" title="Add">Add</button>
+			   </div><br>
+			
+			<button id="save-button" title="save">Save</button>
+			<button id="display-button" title="display">Display</button>
+			<button id="create-button"  title="create">Create</button>
+		</div>
+		<script type="text/javascript" src="appWebSQL.js"></script>
+	</body>
+</html>

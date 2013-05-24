@@ -1,0 +1,17 @@
+{
+  "name": "Email Templates",
+  "description": "Email Templates tool that will manage blurbs to have them available for quick access and use",
+  "minimum_chrome_version": "23",
+  "manifest_version": 2,
+  "version":"1",
+  "browser_action":{
+  	"default_icon": "icon.jpg",
+  	"default_popup": "options.html"
+  	 },
+  "icons": {"16": "icon.jpg"},
+  "permissions": ["tabs","storage","contextMenus","clipboardRead","clipboardWrite"],
+  "background": {
+    "persistent": false,
+    "scripts": ["appWebSQL.js"]
+  }
+ }
