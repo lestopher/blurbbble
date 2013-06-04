@@ -12,8 +12,7 @@
 			<input type="text" id="TemplateGroup" title="template Group" name="Template Group"><br>
 			<label>Email Body</label><br>
 			<textarea id="EmailBody" title="Email body"  name="Email body" rows="25" cols="40"></textarea>
-			<textarea id="DBDisplay" title="Database display" name="Database Display" rows="25" cols="30"></textarea>
-		  </div>
+			<textarea readonly id="DBDisplay" title="Database display" name="Database Display" rows="25" cols="30"></textarea>
 			  <div id="CustomVariable">
 				<select id="CustomDropdown"> 
 					<option value="[Custom1]" name="Custom1">Custom1</option>
@@ -25,11 +24,26 @@
 				<button id="CustomEdit" title="edit">Edit</button>
 				<button id="CustomAdd" title="Add">Add</button>
 			   </div><br>
-			
-			<button id="save-button" title="save">Save</button>
-			<button id="display-button" title="display">Display</button>
-			<button id="create-button"  title="create">Create</button>
-		</div>
+			<button id="save-button" title="save email template">Save</button>
+			<button id="display-button" title="display record count">Display</button>
+			<button id="create-button"  title="create context menu">Create</button>
+			</div>
+      <div id="EditEmailTemplate">
+        <label>Enter the name of the Email Template for edit/delete</label><br>
+        <input type="text" id="SearchName" title="Submit template name for editing" name="Search box">
+        <button id="submit-button" title="Submit">Submit</button><br>
+        <label>Template name</label><br>
+        <input type="text" id="EditName" title="template name" name="Template Name"><br>
+        <label>Template group</label><br>
+        <input type="text" id="EditGroup" title="template Group" name="Template Group"><br>
+        <label>Email Body</label><br>
+        <textarea id="EditBody" title="Email body"  name="Email body" rows="25" cols="40"></textarea><br>
+        <button id="edit-button" title="save edited Email Template">Edit</button>
+        <button id="delete-button" title="delete Email Template">Delete</button>
+        <button id="create-button"  title="create context menu">Create</button><br>
+      </div>
+      <button id="toggle-button" title="toggle between add & edit/delete">Toggle</button><br>
+   	</div>
 		<script type="text/javascript" src="appWebSQL.js"></script>
 	</body>
 </html>

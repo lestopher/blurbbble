@@ -1,0 +1,26 @@
+
+<html>
+	<head>
+		<title>Edit/Delete EmailTemplates</title>
+	</head>
+	<body>
+		<div id="Edit_Delete">
+		  <div id="EditEmailTemplate">
+		    <label>Enter the name of the Email Template for edit/delete</label><br>
+		    <input type="text" id="SearchName" title="Submit template name for editing" name="Search box">
+		    <button id="submit-button" title="Submit">Submit</button><br>
+        <label>Template name</label><br>
+        <input type="text" id="EditName" title="template name" name="Template Name"><br>
+        <label>Template group</label><br>
+        <input type="text" id="EditGroup" title="template Group" name="Template Group"><br>
+        <label>Email Body</label><br>
+        <textarea id="EditBody" title="Email body"  name="Email body" rows="25" cols="40"></textarea><br>
+        <button id="edit-button" title="save edited Email Template">Edit</button>
+        <button id="delete-button" title="delete Email Template">Delete</button>
+        <button id="create-button"  title="create context menu">Create</button><br>
+		  </div>
+		</div>
+		<a href="options.html">Return to Options(default) Page</a>
+		<script type="text/javascript" src="appWebSQL.js"></script>
+	</body>
+</html>

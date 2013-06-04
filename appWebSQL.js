@@ -15,26 +15,56 @@
 ////////////////////////////////////////////
 /*options menu variables*/
    
-var chosenFileEntry  = "test.txt",
-    saveButton       = document.getElementById("save-button"),
-    createButton     = document.getElementById("create-button"),
-    customEditButton = document.getElementById("CustomEdit"),
-    customAddButton  = document.getElementById("CustomAdd"),
-    displayButton    = document.getElementById("display-button"),
-    templateName     = document.getElementById('TemplateName'),
-    templateGroup    = document.getElementById('TemplateGroup'),
-    emailBody        = document.getElementById('EmailBody'),
-    customVarSelect  = document.getElementById("CustomDropdown"),
-    customVarOpt     = customVarSelect.options,
+var chosenFileEntry  		= "test.txt",
+	isEditActive			= 1,
+	toggleButton	 		= document.getElementById("toggle-button"),
+	submitButton	 		= document.getElementById("submit-button"),
+	editButton		 		= document.getElementById("edit-button"),
+	deleteButton	 		= document.getElementById("delete-button"),
+    saveButton       		= document.getElementById("save-button"),
+    createButton     		= document.getElementById("create-button"),
+    customEditButton 		= document.getElementById("CustomEdit"),
+    customAddButton  		= document.getElementById("CustomAdd"),
+    displayButton    		= document.getElementById("display-button"),
+    addEmailTemplateDiv		= document.getElementById("AddEmailTemplate"),
+    editEmailTemplateDiv	= document.getElementById("EditEmailTemplate"),
+    searchName	     		= document.getElementById('SearchName'),
+    templateName     		= document.getElementById('TemplateName'),
+    templateGroup    		= document.getElementById('TemplateGroup'),
+    emailBody        		= document.getElementById('EmailBody'),
+    editName     			= document.getElementById('EditName'),
+	editGroup    			= document.getElementById('EditGroup'),
+    editBody     			= document.getElementById('EditBody'),
+    customVarSelect  		= document.getElementById("CustomDropdown"),
+    customVarOpt     		= customVarSelect.options,
   
     /* Database variables and initialization */  
     recordCount      = 0,
+    processName	 	 =null,
     db               = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
 db.transaction(function(tx) {
-   tx.executeSql('CREATE TABLE IF NOT EXISTS EmailTemplates (email_id unique, email_name, email_group, email_body)');
-   getRecordCount();
-});    
+   tx.executeSql('CREATE TABLE IF NOT EXISTS EmailTemplates (email_id unique, email_name unique, email_group, email_body)');
+}); 
+
+//This will hide the edit email template page which is currently controlled by the toggle button
+if (isEditActive== 1)
+{
+    //editEmailTemplateDiv.style.visibility	= "visible";
+	//addEmailTemplateDiv.style.visibility	= "hidden";
+	
+	editEmailTemplateDiv.style.display	= "none";
+	addEmailTemplateDiv.style.display	= "block";
+}
+else if (isEditActive == 0)
+{   
+    
+	//editEmailTemplateDiv.style.visibility	= "hidden";
+	//addEmailTemplateDiv.style.visibility	= "visible";
+	
+	editEmailTemplateDiv.style.display	= "block";
+	addEmailTemplateDiv.style.display	= "none";
+}
   
 /*Context Menu variables*/
 var contexts = ["page", "selection", "link", "editable", "image", "video", "audio"],
@@ -46,9 +76,13 @@ var contexts = ["page", "selection", "link", "editable", "image", "video", "audi
     templateGroupArray = [],
     templateNameArray  = [],
     emailBodyClipboard = null,
-    testquery          = null;
-  
-      
+    title      = '',
+    groupId    = [],
+    childTitle = '',
+    nameId     = [];
+ 
+//test
+getEmailGroups();    
     
       
 ///////////////////////////////
@@ -56,9 +90,11 @@ var contexts = ["page", "selection", "link", "editable", "image", "video", "audi
 /////////////////////////////// 
 
 function addEmailTemplate(){
+  getRecordCount();
+  processName = "addEmailTemplate";
   db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
   db.transaction(function(tx) {
-   getRecordCount();
+  
    tx.executeSql('INSERT INTO EmailTemplates VALUES (?, ?, ?, ?)', [recordCount+1, templateName.value, templateGroup.value, emailBody.value], function(tx) {
      output_trace(" Your email template \"" + templateName.value + "\" was added into WebSQL: EmailTemplates Successfully");
 
@@ -73,51 +109,76 @@ function addEmailTemplate(){
 function getRecordCount(){
   db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
-  db.transaction(function(tx) {
+  db.readTransaction(function(tx) {
    tx.executeSql('SELECT * FROM EmailTemplates',[],function(tx, results){
      recordCount = results.rows.length;
+     output_trace("The total amount of records:"+ recordCount);
    });
   });
 }
 
 function getEmailGroups(){
  //getRecordCount();
+ processName = "getEmailGroups";
  db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
- db.transaction(function(tx) {
+ db.readTransaction(function(tx) {
    tx.executeSql('SELECT DISTINCT email_group FROM EmailTemplates', [], function(tx,results){
-     var i;
-
-     for (i = 0; i < results.rows.length; i++) {
-       templateGroupArray[i] = results.rows.item(i).email_group;
-     }
-    
-   });
- });
+	   var i;
+	   for (i = 0; i < results.rows.length; i++) 
+	   {
+		   templateGroupArray[i] = results.rows.item(i).email_group;
+		   title   = templateGroupArray[i];
+		   groupId.push(chrome.contextMenus.create({
+			      "id": title,
+			      "title": title,
+			      "parentId": parent,
+			      "contexts": ["page", "selection", "link", "editable", "image", "video", "audio"]
+			    }));
+		   getEmailNames(templateGroupArray[i]);
+	   } 
+	   
+	 },onError);
+ },onError,onSuccessTransaction(processName));
 }
 
 function getEmailNames(group){
 //getRecordCount();
+  processName = "getEmailNames";
   db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
-  db.transaction(function(tx){
+  db.readTransaction(function(tx){
+  
     tx.executeSql('SELECT email_name FROM EmailTemplates WHERE email_group = ?', [group], function(tx, results) {
       var i;
       for(i=0; i<results.rows.length;i++) {
         templateNameArray[i] = results.rows.item(i).email_name;
+        childTitle = templateNameArray[i];
+        
+        chrome.contextMenus.onClicked.addListener(getEmailBody);
+        nameId.push(chrome.contextMenus.create({
+            "id": childTitle,
+            "title": childTitle,
+            "parentId": group,
+            "contexts": ["page", "selection", "link", "editable", "image", "video", "audio"]
+          }));
       }
-    });
-  });
+      onSuccessExecuteSql(tx, results);
+    },onError);
+  },onError,onSuccessTransaction(processName));
 }
 
-function getEmailBody(name){
+function getEmailBody(info,tab){
+  processName = "getEmailBody";
   db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
-  db.transaction(function(tx) {
-   tx.executeSql('SELECT email_body FROM EmailTemplates WHERE email_name = ?', [name], function(tx, results) {
+  db.readTransaction(function(tx) {
+   tx.executeSql('SELECT email_body FROM EmailTemplates WHERE email_name = ?', [info.menuItemId], function(tx, results) {
      emailBodyClipboard = results.rows.item(0).email_body;
-   });
-  });
+     copyEmailBody();
+     onSuccessExecuteSql(tx, results);
+   },onError);
+  },onError,onSuccessTransaction(processName));
 }
 
 function output_trace(sMsg){
@@ -131,6 +192,17 @@ function output_trace(sMsg){
 }
 
 
+function onSuccessExecuteSql(tx, results){
+	output_trace("Execute SQL completed.");
+}
+
+function onSuccessTransaction(processName){
+	output_trace("Transaction for "+processName+" completed");
+}
+
+function onError(err){
+	output_trace(err);
+}
       
 ///////////////////////////////
 // End of Database functions //
@@ -237,66 +309,6 @@ function copyEmailBody() {
   copyToClipboard(emailBodyClipboard);
 }
 
-//A generic onclick callback function.
-function genericOnClick(info, tab) {
-  console.log("item " + info.menuItemId + " was clicked");
-  console.log("info: " + JSON.stringify(info));
-  console.log("tab: " + JSON.stringify(tab));
-}
-
-// Create one test item for each context type.
-/*
-var contexts = ["page","selection","link","editable","image","video",
-                "audio"];
-for (var i = 0; i < contexts.length; i++) {
-  var context = contexts[i];
-  var title = "Test '" + context + "' menu item";
-  var id = chrome.contextMenus.create({"title": title, "contexts":[context],
-                                       "onclick": genericOnClick});
-  console.log("'" + context + "' item:" + id);
-}*/
-
-function createContextMenu() {
-  var title      = '',
-      groupId    = [],
-      childTitle = '',
-      nameId     = [],
-      i          = 0,
-      j          = 0;
-
-  // Populates the templateGroupArray
-  getEmailGroups(); 
-
-  for (i = 0; i < templateGroupArray.length; ++i) {
-    //parentArray[i] = chrome.contextMenus.create({"title": templateGroupArray[i], "parentId": parent});
-    title   = templateGroupArray[i];
-
-    getEmailNames(templateGroupArray[i]);
-
-    groupId.push(chrome.contextMenus.create({
-      "id": title + i,
-      "title": title,
-      "parentId": parent,
-      "contexts": ["page", "selection", "link", "editable", "image", "video", "audio"]
-    }));
-      
-    for (j = 0; j < templateNameArray.length; ++j) {
-      childTitle = templateNameArray[j];
-
-      getEmailBody(childTitle);
-
-      chrome.contextMenus.onClicked.addListener(copyEmailBody);
-
-      nameId.push(chrome.contextMenus.create({
-        "id": childTitle + j,
-        "title": childTitle,
-        "parentId": groupId[i],
-        "contexts": ["page", "selection", "link", "editable", "image", "video", "audio"]
-      }));
-    }
-  }
-}
-
 //////////////////////////////
 //End of ContextMenu Section//
 //////////////////////////////
@@ -313,6 +325,10 @@ customVarSelect.addEventListener('change',function(e) {
   
 /*Event listener for the Save button. Currently saves the textbox/area info into a file. extension must be specified for file eg .txt*/
 saveButton.addEventListener('click', function (e) {
+	
+	 //Code used to store the email template information into the WebSQL Database.
+	  addEmailTemplate();
+	
     //Code used to save contents to file. for Packed app only since filesystem cannot be called in an extension.
      /* var config = {type: 'saveFile', suggestedName: chosenFileEntry.name};
       chrome.fileSystem.chooseEntry(config, function(writableEntry) 
@@ -326,18 +342,82 @@ saveButton.addEventListener('click', function (e) {
         });
       });
         */
-    
-    
-  //Code used to store the email template information into the WebSQL Database.
-  addEmailTemplate();
 },false);
   
+/*Event listener that currently displays the record count of the database*/
 displayButton.addEventListener('click', function(e) {
   getRecordCount();
-  output_trace(recordCount);
 }, false);
     
+/*Event Listener to create the context menu using the current records of the database.*/
 createButton.addEventListener('click',function(e){
-  createContextMenu();
+	
+//Starts the process of creating the context menu
+  getEmailGroups();
+  
+}, false);
+
+/*Event Listener to submit the name of the email template to be edited/deleted*/
+submitButton.addEventListener('click', function(e){
+	
+	db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
+	
+	db.transaction(function(tx) {
+		   tx.executeSql('SELECT * FROM EmailTemplates WHERE email_name = ?', [searchName.value], function(tx, results) {
+			    
+			   editName.value	= results.rows.item(0).email_name;
+			   editGroup.value	= results.rows.item(0).email_group;
+			   editBody.value	= results.rows.item(0).email_body;
+			   
+			   
+		   },onError);
+		  });
+	
+}, false);
+
+/*Event Listener to save the edited email template information*/
+editButton.addEventListener('click', function(e){
+	
+	db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
+	
+	db.transaction(function(tx){
+		tx.executeSql('UPDATE EmailTemplates SET email_name=?, email_group=?, email_body=? WHERE email_name = ?',[editName.value, editGroup.value, editBody.value, searchName.value], function(tx,results){
+			
+			 /* Clears the textboxes and textarea after it saves to file*/
+		     editName.value  = "";
+		     editGroup.value = "";
+		     editBody.value     = "";
+		});
+	});
+	
+}, false);
+
+
+/*Event Listener to toggle between Adding and Editing/Deleting Email Templates*/
+toggleButton.addEventListener('click', function(e){
+	
+	if(isEditActive == 0)
+		isEditActive = 1;
+	else
+		isEditActive=0;
+	
+	if (isEditActive== 1)
+	{
+	    //editEmailTemplateDiv.style.visibility	= "visible";
+		//addEmailTemplateDiv.style.visibility	= "hidden";
+		
+		editEmailTemplateDiv.style.display	= "none";
+		addEmailTemplateDiv.style.display	= "block";
+	}
+	else if (isEditActive == 0)
+	{   
+	    
+		//editEmailTemplateDiv.style.visibility	= "hidden";
+		//addEmailTemplateDiv.style.visibility	= "visible";
+		
+		editEmailTemplateDiv.style.display	= "block";
+		addEmailTemplateDiv.style.display	= "none";
+	}
+	
 }, false);
     
