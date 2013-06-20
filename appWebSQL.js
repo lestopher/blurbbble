@@ -35,8 +35,8 @@ var chosenFileEntry  		= "test.txt",
     editName     			= document.getElementById('EditName'),
 	editGroup    			= document.getElementById('EditGroup'),
     editBody     			= document.getElementById('EditBody'),
-    customVarSelect  		= document.getElementById("CustomDropdown"),
-    customVarOpt     		= customVarSelect.options,
+    customVarSelect  		= document.getElementById("CustomDropdown");
+var customVarOpt     		= customVarSelect.options,
   
     /* Database variables and initialization */  
     recordCount      = 0,
@@ -95,7 +95,7 @@ function addEmailTemplate(){
   db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
   db.transaction(function(tx) {
   
-   tx.executeSql('INSERT INTO EmailTemplates VALUES (?, ?, ?, ?)', [recordCount+1, templateName.value, templateGroup.value, emailBody.value], function(tx) {
+   tx.executeSql('INSERT INTO EmailTemplates VALUES (?, ?, ?, ?)', [recordCount+templateName.value, templateName.value, templateGroup.value,"<pre>"+ emailBody.value +"</pre>"], function(tx) {
      output_trace(" Your email template \"" + templateName.value + "\" was added into WebSQL: EmailTemplates Successfully");
 
      /* Clears the textboxes and textarea after it saves to file*/
@@ -123,7 +123,7 @@ function getEmailGroups(){
  db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
  db.readTransaction(function(tx) {
-   tx.executeSql('SELECT DISTINCT email_group FROM EmailTemplates', [], function(tx,results){
+   tx.executeSql('SELECT DISTINCT email_group FROM EmailTemplates ORDER BY email_group', [], function(tx,results){
 	   var i;
 	   for (i = 0; i < results.rows.length; i++) 
 	   {
@@ -149,7 +149,7 @@ function getEmailNames(group){
 
   db.readTransaction(function(tx){
   
-    tx.executeSql('SELECT email_name FROM EmailTemplates WHERE email_group = ?', [group], function(tx, results) {
+    tx.executeSql('SELECT email_name FROM EmailTemplates WHERE email_group = ? ORDER BY email_name', [group], function(tx, results) {
       var i;
       for(i=0; i<results.rows.length;i++) {
         templateNameArray[i] = results.rows.item(i).email_name;
@@ -389,6 +389,28 @@ editButton.addEventListener('click', function(e){
 		     editBody.value     = "";
 		});
 	});
+	
+}, false);
+
+/*Event Listener to delete the searched email template*/
+deleteButton.addEventListener('click', function(e){
+	var canDelete = confirm("Are you sure you want to Delete?");
+	
+	if(canDelete == true)
+		{
+			db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
+			
+			db.transaction(function(tx){
+				tx.executeSql('DELETE FROM EmailTemplates Where email_name = ? ',[searchName.value], function(tx,results){
+					
+					 /* Clears the textboxes and textarea after it saves to file*/
+				     editName.value  = "";
+				     editGroup.value = "";
+				     editBody.value     = "";
+				});
+			});
+		}
+	canDelete = false;
 	
 }, false);
 

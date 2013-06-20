@@ -15,8 +15,5 @@
                  "*://econnect/Teams/Support/HelpDeskRep/tabid/*/ctl/RepDetails/mid/*/id/*", 
                  "*://econnect/Teams/Support/HelpDeskRep/tabid/181/ctl/RepView/mid/725/rep_id/*"],
      "js": ["appWebSQL.js"]
-  }],
-  "background":{
-      "scripts": ["appWebSQL.js"]
-  }
+  }]
  }
