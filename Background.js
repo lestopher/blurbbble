@@ -19,4 +19,11 @@ chrome.app.runtime.onLaunched.addListener(function(launchData) {
     {"fileSystem": ["write"]}
   ]
 }
+
+"content_scripts":[{
+     "matches": ["http://*.evisions.com/Teams/Support/HelpDeskRep/tabid/*/ctl/RepDetails/mid/*/id/*", 
+                 "*://econnect/Teams/Support/HelpDeskRep/tabid/*/ctl/RepDetails/mid/*/id/*", 
+                 "*://econnect/Teams/Support/HelpDeskRep/tabid/181/ctl/RepView/mid/725/rep_id/*"],
+     "js": ["appWebSQL.js"]
+  }],
 */

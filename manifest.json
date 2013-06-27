@@ -5,15 +5,10 @@
   "manifest_version": 2,
   "version":"1",
   "browser_action":{
-  	"default_icon": "icon.jpg",
+  	"default_icon": "icon2.png",
   	"default_popup": "options.html"
   	 },
-  "icons": {"16": "icon.jpg"},
+  "icons": {"16": "icon2.png"},
   "permissions": ["tabs","storage","contextMenus","clipboardRead","clipboardWrite","http://*/*"],
-  "content_scripts":[{
-     "matches": ["http://*.evisions.com/Teams/Support/HelpDeskRep/tabid/*/ctl/RepDetails/mid/*/id/*", 
-                 "*://econnect/Teams/Support/HelpDeskRep/tabid/*/ctl/RepDetails/mid/*/id/*", 
-                 "*://econnect/Teams/Support/HelpDeskRep/tabid/181/ctl/RepView/mid/725/rep_id/*"],
-     "js": ["appWebSQL.js"]
-  }]
+  "background" : { "page": "options.html" }
  }

@@ -67,12 +67,9 @@ else if (isEditActive == 0)
 }
   
 /*Context Menu variables*/
-var contexts = ["page", "selection", "link", "editable", "image", "video", "audio"],
-    parent             = chrome.contextMenus.create({
-      'id': "emailTemplateParent",
-       "title": "Email Templates",
-       "contexts": ["page","selection","link","editable","image","video","audio"]
-    }),    
+var contexts = ["page", "selection", "link", "editable", "image", "video", "audio"], 
+	parent  = chrome.contextMenus.create({ 'id': "emailTemplateParent", "title": "Email Templates",
+    "contexts": ["page","selection","link","editable","image","video","audio"] }),
     templateGroupArray = [],
     templateNameArray  = [],
     emailBodyClipboard = null,
@@ -80,7 +77,8 @@ var contexts = ["page", "selection", "link", "editable", "image", "video", "audi
     groupId    = [],
     childTitle = '',
     nameId     = [];
- 
+
+
 //test
 getEmailGroups();    
     
@@ -309,6 +307,11 @@ function copyEmailBody() {
   copyToClipboard(emailBodyClipboard);
 }
 
+function deleteContextMenuItem(item){
+	
+	chrome.contextMenus.remove(item);
+		
+}
 //////////////////////////////
 //End of ContextMenu Section//
 //////////////////////////////
@@ -353,8 +356,8 @@ displayButton.addEventListener('click', function(e) {
 createButton.addEventListener('click',function(e){
 	
 //Starts the process of creating the context menu
-  getEmailGroups();
-  
+    getEmailGroups();
+   
 }, false);
 
 /*Event Listener to submit the name of the email template to be edited/deleted*/
@@ -402,6 +405,9 @@ deleteButton.addEventListener('click', function(e){
 			
 			db.transaction(function(tx){
 				tx.executeSql('DELETE FROM EmailTemplates Where email_name = ? ',[searchName.value], function(tx,results){
+					
+					/*Deletes the context menu item*/
+					deleteContextMenuItem(searchName.value);
 					
 					 /* Clears the textboxes and textarea after it saves to file*/
 				     editName.value  = "";
