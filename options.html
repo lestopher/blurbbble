@@ -1,6 +1,15 @@
 
 <html>
+<style type="text/css">
+    body {max-height: 300px;}
+    #TemplateGroupSelect{position:absolute; width:160px; height:23px;}
+    #TemplateGroup{position: absolute; width: 143px;height:23px;}
+    #SearchNameSelect{position:absolute; width:160px; height:23px;}
+    #SearchName{position: absolute; width: 143px;height:23px;}
+    #submit-button{position: absolute; right:130px}
+</style>
 	<head>
+	<script src="js/jquery-1.8.3.js"></script>
 		<title>Options</title>
 	</head>
 	<body>
@@ -9,10 +18,14 @@
 			<label>Template name</label><br>
 			<input type="text" id="TemplateName" title="template name" name="Template Name"><br>
 			<label>Template group</label><br>
+			<select id="TemplateGroupSelect" name="Template Group">
+			 <option value="" name="null option">[select group]</option>
+			</select>
 			<input type="text" id="TemplateGroup" title="template Group" name="Template Group"><br>
+			<p id=ptest>value:</p><br>		
 			<label>Email Body</label><br>
 			<textarea id="EmailBody" title="Email body"  name="Email body" rows="25" cols="40"></textarea>
-			<textarea readonly id="DBDisplay" title="Database display" name="Database Display" rows="25" cols="30"></textarea>
+			<textarea readonly id="DBDisplay" title="Database display" name="Database Display" rows="25" cols="30" hidden="hidden"></textarea>
 			  <div id="CustomVariable" hidden="hidden">
 				<select id="CustomDropdown"> 
 					<option value="[Custom1]" name="Custom1">Custom1</option>
@@ -26,10 +39,12 @@
 			   </div><br>
 			<button id="save-button" title="save email template">Save</button>
 			<button id="display-button" title="display record count">Record Count</button>
-			<button id="create-button"  title="create context menu">Create</button>
-			</div>
+		</div>
       <div id="EditEmailTemplate">
         <label>Enter the name of the Email Template for edit/delete</label><br>
+        <select id="SearchNameSelect" name="Search Name">
+       <option value="" name="null option">[select name]</option>
+      </select>
         <input type="text" id="SearchName" title="Submit template name for editing" name="Search box">
         <button id="submit-button" title="Submit">Submit</button><br>
         <label>Template name</label><br>
@@ -40,10 +55,10 @@
         <textarea id="EditBody" title="Email body"  name="Email body" rows="25" cols="40"></textarea><br>
         <button id="edit-button" title="save edited Email Template">Edit</button>
         <button id="delete-button" title="delete Email Template">Delete</button>
-        <button id="create-button"  title="create context menu">Create</button><br>
-      </div>
-      <button id="toggle-button" title="toggle between add & edit/delete">Toggle</button><br>
+    </div>
+      <button id="toggle-button" title="toggle between add & edit/delete"></button><br>
    	</div>
+   	
 		<script type="text/javascript" src="appWebSQL.js"></script>
 	</body>
 </html>

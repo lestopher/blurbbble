@@ -1,13 +1,21 @@
 
 
-/*Created By: Joseph Saunderson
- * Application name: Email templates Google chrome extension
+/*Created By: Joseph Saunderson,
+ *			  Glendon Bratcher
+ * Application name: Email templates Google chrome extension (Blurbble)
  * Description: Easy access and storage for your email blurbs by clicking on context menu for automatic pasting
- * verison: 1.0
+ * version: 1.1
+ * Basic context menu functionality (copies blurbs to clipboard)
+ * Ability to add, edit, and delete email templates.
  * 
- * 
- * 
+ * Audit Trail
+ * version 1.1
+ * Added Combo dropdown boxes for group and search name fields.
+ * Able to select from the dropdown existing groups/email templates or type in manually if it doesn't exist.
+ * Added alert messages to warn of false context menus (artifacts) created when deleting or editing entries in database.
+ * All artifacts will be removed upon reload of the browser or extension.
  * */
+
 
 
 ////////////////////////////////////////////
@@ -22,7 +30,6 @@ var chosenFileEntry  		= "test.txt",
 	editButton		 		= document.getElementById("edit-button"),
 	deleteButton	 		= document.getElementById("delete-button"),
     saveButton       		= document.getElementById("save-button"),
-    createButton     		= document.getElementById("create-button"),
     customEditButton 		= document.getElementById("CustomEdit"),
     customAddButton  		= document.getElementById("CustomAdd"),
     displayButton    		= document.getElementById("display-button"),
@@ -43,6 +50,12 @@ var customVarOpt     		= customVarSelect.options,
     processName	 	 =null,
     db               = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
+/* Jquery variables */
+var templateGroupSelect 		= document.getElementById("TemplateGroupSelect"),
+    searchNameSelect = document.getElementById("SearchNameSelect"),
+	extensionId = chrome.i18n.getMessage("@@extension_id"),
+	ptest		= document.getElementById("ptest");
+
 db.transaction(function(tx) {
    tx.executeSql('CREATE TABLE IF NOT EXISTS EmailTemplates (email_id unique, email_name unique, email_group, email_body)');
 }); 
@@ -50,20 +63,19 @@ db.transaction(function(tx) {
 //This will hide the edit email template page which is currently controlled by the toggle button
 if (isEditActive== 1)
 {
-    //editEmailTemplateDiv.style.visibility	= "visible";
-	//addEmailTemplateDiv.style.visibility	= "hidden";
+    
 	
 	editEmailTemplateDiv.style.display	= "none";
 	addEmailTemplateDiv.style.display	= "block";
+	toggleButton.innerHTML = "Go to Edit Menu";
 }
 else if (isEditActive == 0)
 {   
     
-	//editEmailTemplateDiv.style.visibility	= "hidden";
-	//addEmailTemplateDiv.style.visibility	= "visible";
 	
 	editEmailTemplateDiv.style.display	= "block";
 	addEmailTemplateDiv.style.display	= "none";
+	toggleButton.innerHTML = "Go to Add Menu";
 }
   
 /*Context Menu variables*/
@@ -79,14 +91,16 @@ var contexts = ["page", "selection", "link", "editable", "image", "video", "audi
     nameId     = [];
 
 
-//test
+/*Initial function calls for startup*/
 getEmailGroups();    
-    
+getEmailGroupsOnly();
+getEmailNamesOnly();    
       
 ///////////////////////////////
 // Database functions        //
-/////////////////////////////// 
+///////////////////////////////
 
+//modified
 function addEmailTemplate(){
   getRecordCount();
   processName = "addEmailTemplate";
@@ -100,8 +114,10 @@ function addEmailTemplate(){
      templateName.value  = "";
      templateGroup.value = "";
      emailBody.value     = "";
-   });
-  });
+     getEmailGroupsOnly();
+     getEmailNamesOnly();
+   },onError);
+  },onError,onSuccessTransaction(processName));
 }
 
 function getRecordCount(){
@@ -116,7 +132,7 @@ function getRecordCount(){
 }
 
 function getEmailGroups(){
- //getRecordCount();
+ 
  processName = "getEmailGroups";
  db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
@@ -140,8 +156,9 @@ function getEmailGroups(){
  },onError,onSuccessTransaction(processName));
 }
 
+
 function getEmailNames(group){
-//getRecordCount();
+
   processName = "getEmailNames";
   db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 
@@ -177,7 +194,51 @@ function getEmailBody(info,tab){
      onSuccessExecuteSql(tx, results);
    },onError);
   },onError,onSuccessTransaction(processName));
+  
 }
+
+
+function getEmailGroupsOnly(){
+	 
+	 processName = "getEmailGroupsOnly";
+	 db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
+
+	 db.readTransaction(function(tx) {
+	   tx.executeSql('SELECT DISTINCT email_group FROM EmailTemplates ORDER BY email_group', [], function(tx,results){
+		   var i;
+		   templateGroupSelect.options.length = results.rows.length + 1 ;
+		   for (i = 0; i < results.rows.length; i++) 
+		   {
+			   templateGroupArray[i] = results.rows.item(i).email_group;
+			   title   = templateGroupArray[i];
+			   templateGroupSelect.options[i+1].text = title;
+			   templateGroupSelect.options[i+1].value = title; 
+		   } 
+		   
+		 },onError);
+	 },onError,onSuccessTransaction(processName));
+	}
+
+function getEmailNamesOnly(){
+	 
+	 processName = "getEmailNamesOnly";
+	 db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
+
+	 db.readTransaction(function(tx) {
+	   tx.executeSql('SELECT DISTINCT email_name FROM EmailTemplates ORDER BY email_name', [], function(tx,results){
+		   var i;
+		   searchNameSelect.options.length = results.rows.length + 1 ;
+		   for (i = 0; i < results.rows.length; i++) 
+		   {
+			   templateGroupArray[i] = results.rows.item(i).email_name;
+			   title   = templateGroupArray[i];
+			   searchNameSelect.options[i+1].text = title;
+			   searchNameSelect.options[i+1].value = title; 
+		   } 
+		   
+		 },onError);
+	 },onError,onSuccessTransaction(processName));
+	}
 
 function output_trace(sMsg){
   var oTrace = document.getElementById("DBDisplay");
@@ -199,7 +260,7 @@ function onSuccessTransaction(processName){
 }
 
 function onError(err){
-	output_trace(err);
+	alert(err);
 }
       
 ///////////////////////////////
@@ -208,7 +269,7 @@ function onError(err){
       
       
 ///////////////////////////////
-// Write to File section   //
+// Write to File section     //
 /////////////////////////////// 
 
   
@@ -217,12 +278,7 @@ function errorHandler(e) {
   console.error(e);
 }
 
-/*retrieves the file path
-function displayPath(fileEntry) {
-    chrome.fileSystem.getDisplayPath(fileEntry, function(path) {
-      document.querySelector('#file_path').value = path;
-    });
-  }*/
+
 
 /* Write the entry to a file on the filesystem */
 function writeFileEntry(writableEntry, opt_blob, callback) {
@@ -303,15 +359,18 @@ function copyToClipboard( text ){
   document.body.removeChild(copyDiv);
 }
 
+
 function copyEmailBody() {
   copyToClipboard(emailBodyClipboard);
 }
+
 
 function deleteContextMenuItem(item){
 	
 	chrome.contextMenus.remove(item);
 		
 }
+
 //////////////////////////////
 //End of ContextMenu Section//
 //////////////////////////////
@@ -331,20 +390,8 @@ saveButton.addEventListener('click', function (e) {
 	
 	 //Code used to store the email template information into the WebSQL Database.
 	  addEmailTemplate();
-	
-    //Code used to save contents to file. for Packed app only since filesystem cannot be called in an extension.
-     /* var config = {type: 'saveFile', suggestedName: chosenFileEntry.name};
-      chrome.fileSystem.chooseEntry(config, function(writableEntry) 
-      {
-            
-        
-        var blob = new Blob([templateName.value +"," + templateGroup.value + "," + emailBody.value + customVarOpt[customVarSelect.selectedIndex].value], {type: 'text/plain'});
-        writeFileEntry(writableEntry, blob, function(e) 
-        {
-          output.textContent = 'Write complete :)';
-        });
-      });
-        */
+	  getEmailGroups();
+   
 },false);
   
 /*Event listener that currently displays the record count of the database*/
@@ -352,13 +399,6 @@ displayButton.addEventListener('click', function(e) {
   getRecordCount();
 }, false);
     
-/*Event Listener to create the context menu using the current records of the database.*/
-createButton.addEventListener('click',function(e){
-	
-//Starts the process of creating the context menu
-    getEmailGroups();
-   
-}, false);
 
 /*Event Listener to submit the name of the email template to be edited/deleted*/
 submitButton.addEventListener('click', function(e){
@@ -386,10 +426,16 @@ editButton.addEventListener('click', function(e){
 	db.transaction(function(tx){
 		tx.executeSql('UPDATE EmailTemplates SET email_name=?, email_group=?, email_body=? WHERE email_name = ?',[editName.value, editGroup.value, editBody.value, searchName.value], function(tx,results){
 			
-			 /* Clears the textboxes and textarea after it saves to file*/
-		     editName.value  = "";
+			/*Deletes the context menu item*/
+			deleteContextMenuItem(searchName.value);
+			/* Clears the textboxes and textarea after it saves to file*/
+			 editName.value  = "";
 		     editGroup.value = "";
-		     editBody.value     = "";
+		     editBody.value  = "";
+		     getEmailGroupsOnly();
+		     getEmailNamesOnly();
+		     getEmailGroups();
+		     alert("All false context menu items will be removed once you reload the extension or restart Chrome browser");
 		});
 	});
 	
@@ -397,7 +443,7 @@ editButton.addEventListener('click', function(e){
 
 /*Event Listener to delete the searched email template*/
 deleteButton.addEventListener('click', function(e){
-	var canDelete = confirm("Are you sure you want to Delete?");
+	var canDelete = confirm("Are you sure you want to delete? (All false context menu items will be removed once you reload the extension or restart Chrome browser)");
 	
 	if(canDelete == true)
 		{
@@ -413,11 +459,14 @@ deleteButton.addEventListener('click', function(e){
 				     editName.value  = "";
 				     editGroup.value = "";
 				     editBody.value     = "";
+				     getEmailGroupsOnly();
+				     getEmailNamesOnly();
 				});
 			});
+			
+			
 		}
 	canDelete = false;
-	
 }, false);
 
 
@@ -431,21 +480,65 @@ toggleButton.addEventListener('click', function(e){
 	
 	if (isEditActive== 1)
 	{
-	    //editEmailTemplateDiv.style.visibility	= "visible";
-		//addEmailTemplateDiv.style.visibility	= "hidden";
+	    
 		
 		editEmailTemplateDiv.style.display	= "none";
 		addEmailTemplateDiv.style.display	= "block";
+		toggleButton.innerHTML = "Go to Edit Menu";
 	}
 	else if (isEditActive == 0)
 	{   
 	    
-		//editEmailTemplateDiv.style.visibility	= "hidden";
-		//addEmailTemplateDiv.style.visibility	= "visible";
-		
+			
 		editEmailTemplateDiv.style.display	= "block";
 		addEmailTemplateDiv.style.display	= "none";
+		toggleButton.innerHTML = "Go to Add Menu";
 	}
 	
 }, false);
-    
+
+
+////////////////////////////////
+//End ofEvent Listener section//  
+///////////////////////////////
+
+/********
+ * 
+ * JQuery functions
+ *******/
+ 
+/*Manages the Combo Dropdown boxes for the groups and search name fields*/
+$("#TemplateGroupSelect").change(function(){ 
+	modify();
+});
+
+$("#SearchNameSelect").change(function(){ 
+	modify();
+});
+
+function modify(){
+	$("#TemplateGroup").val($("#TemplateGroupSelect").val());
+	$("#SearchName").val($("#SearchNameSelect").val());
+	output();
+}
+
+function output(){
+	$("#ptest").text('value: ' + $("#TemplateGroup").val());
+}
+
+$("#TemplateGroup").on('click', function(){
+	$(this).select();
+}).on('blur', function(){
+	output();
+});
+
+$("#SearchName").on('click', function(){
+	$(this).select();
+}).on('blur', function(){
+	output();
+});
+
+modify();
+/*end of Combo Dropdown boxes*/
+
+
