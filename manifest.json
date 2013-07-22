@@ -3,7 +3,7 @@
   "description": "Email Templates tool that will manage blurbs to have them available for quick access and use",
   "minimum_chrome_version": "23",
   "manifest_version": 2,
-  "version":"1.1",
+  "version":"1.2",
   "browser_action":{
   	"default_icon": "icon_d.png",
   	"default_popup": "options.html"
@@ -11,5 +11,10 @@
   "icons": {"16": "icon_d.png",
             "48": "icon48.png"},
   "permissions": ["tabs","storage","contextMenus","clipboardRead","clipboardWrite","http://*/*"],
-  "background" : { "page": "options.html" }
+  "background" : { "page": "options.html" },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*","https://*/*"],
+      "js": ["content.js"]
+    }]
  }

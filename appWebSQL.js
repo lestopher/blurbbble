@@ -14,6 +14,10 @@
  * Able to select from the dropdown existing groups/email templates or type in manually if it doesn't exist.
  * Added alert messages to warn of false context menus (artifacts) created when deleting or editing entries in database.
  * All artifacts will be removed upon reload of the browser or extension.
+ *
+ * version 1.2
+ * Added token replace in Email Body.
+ * Fixed edit menu so that <pre> tags do not show up in the editting window.
  * */
 
 
@@ -100,6 +104,14 @@ getEmailNamesOnly();
 // Database functions        //
 ///////////////////////////////
 
+function stripTags(htmlString) {
+		htmlString = htmlString.replace(/&(lt|gt);/g, function (strMatch, p1){
+			return (p1 == "pre")? "<" : ">";
+		});
+		var strTagStrippedText = htmlString.replace(/<\/?[^>]+(>|$)/g, "");
+		return strTagStrippedText;	
+}	
+
 //modified
 function addEmailTemplate(){
   getRecordCount();
@@ -170,18 +182,37 @@ function getEmailNames(group){
         templateNameArray[i] = results.rows.item(i).email_name;
         childTitle = templateNameArray[i];
         
-        chrome.contextMenus.onClicked.addListener(getEmailBody);
+        //chrome.contextMenus.onClicked.addListener(getEmailBody);
         nameId.push(chrome.contextMenus.create({
             "id": childTitle,
             "title": childTitle,
             "parentId": group,
-            "contexts": ["page", "selection", "link", "editable", "image", "video", "audio"]
+            "contexts": ["page", "selection", "link", "editable", "image", "video", "audio"],
+            "onclick": function(info,tab){
+              processName = "insertText";
+              db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
+
+              db.readTransaction(function(tx) {
+               tx.executeSql('SELECT email_body FROM EmailTemplates WHERE email_name = ?', [info.menuItemId], function(tx, results) {
+                 emailBodyClipboard = results.rows.item(0).email_body;
+                 // Strip the <pre> tags off the string
+                 iText = stripTags(emailBodyClipboard);
+                 // Send message to chrome with the string (for inserting text)
+                 chrome.tabs.sendMessage(tab.id, iText);
+                 
+                 onSuccessExecuteSql(tx, results);
+               },onError);
+              },onError,onSuccessTransaction(processName));
+            }
           }));
       }
       onSuccessExecuteSql(tx, results);
     },onError);
   },onError,onSuccessTransaction(processName));
 }
+
+
+/* Removed to allow inserting text from context menu
 
 function getEmailBody(info,tab){
   processName = "getEmailBody";
@@ -197,6 +228,7 @@ function getEmailBody(info,tab){
   
 }
 
+*/
 
 function getEmailGroupsOnly(){
 	 
@@ -410,7 +442,7 @@ submitButton.addEventListener('click', function(e){
 			    
 			   editName.value	= results.rows.item(0).email_name;
 			   editGroup.value	= results.rows.item(0).email_group;
-			   editBody.value	= results.rows.item(0).email_body;
+			   editBody.value	= stripTags(results.rows.item(0).email_body);
 			   
 			   
 		   },onError);
@@ -424,7 +456,7 @@ editButton.addEventListener('click', function(e){
 	db = openDatabase('EmailTemplateDB', '1.0', 'Database for managing Email Templates', 5 * 1024 * 1024);
 	
 	db.transaction(function(tx){
-		tx.executeSql('UPDATE EmailTemplates SET email_name=?, email_group=?, email_body=? WHERE email_name = ?',[editName.value, editGroup.value, editBody.value, searchName.value], function(tx,results){
+		tx.executeSql('UPDATE EmailTemplates SET email_name=?, email_group=?, email_body=? WHERE email_name = ?',[editName.value, editGroup.value, "<pre>"+editBody.value+"</pre>", searchName.value], function(tx,results){
 			
 			/*Deletes the context menu item*/
 			deleteContextMenuItem(searchName.value);
