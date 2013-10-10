@@ -3,7 +3,7 @@
   "description": "Email Templates tool that will manage blurbs to have them available for quick access and use",
   "minimum_chrome_version": "23",
   "manifest_version": 2,
-  "version":"1.1",
+  "version":"1.3",
   "browser_action":{
   	"default_icon": "icon2.png",
   	"default_popup": "options.html"
@@ -11,11 +11,10 @@
   "icons": {"16": "icon2.png",
             "48": "icon48_dev.png"},
   "permissions": ["tabs","storage","contextMenus","clipboardRead","clipboardWrite","http://*/*"],
-  "content_scripts":[{
-     "matches": ["http://*.evisions.com/Teams/Support/HelpDeskRep/tabid/*/ctl/RepDetails/mid/*/id/*", 
-                 "*://econnect/Teams/Support/HelpDeskRep/tabid/*/ctl/RepDetails/mid/*/id/*", 
-                 "*://econnect/Teams/Support/HelpDeskRep/tabid/181/ctl/RepView/mid/725/rep_id/*"],
-     "js": ["appWebSQL.js"]
-  }],
-  "background" : { "page": "options.html" }
+"background" : { "page": "options.html" },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*","https://*/*"],
+      "js": ["content.js"]
+    }]
  }

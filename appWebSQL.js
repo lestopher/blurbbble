@@ -29,7 +29,9 @@
    
 var chosenFileEntry  		= "test.txt",
 	isEditActive			= 1,
+	isCopyActive			= 1,
 	toggleButton	 		= document.getElementById("toggle-button"),
+	toggleCopy		 		= document.getElementById("ToggleCopy"),
 	submitButton	 		= document.getElementById("submit-button"),
 	editButton		 		= document.getElementById("edit-button"),
 	deleteButton	 		= document.getElementById("delete-button"),
@@ -63,6 +65,15 @@ var templateGroupSelect 		= document.getElementById("TemplateGroupSelect"),
 db.transaction(function(tx) {
    tx.executeSql('CREATE TABLE IF NOT EXISTS EmailTemplates (email_id unique, email_name unique, email_group, email_body)');
 }); 
+
+
+
+//testing Local storage
+toggleCopy.checked = localStorage.getItem(toggleCopy) === 'true' ? true:false;
+if(toggleCopy.checked == true)
+	isCopyActive = 1;
+else
+	isCopyActive = 0;
 
 //This will hide the edit email template page which is currently controlled by the toggle button
 if (isEditActive== 1)
@@ -195,10 +206,14 @@ function getEmailNames(group){
               db.readTransaction(function(tx) {
                tx.executeSql('SELECT email_body FROM EmailTemplates WHERE email_name = ?', [info.menuItemId], function(tx, results) {
                  emailBodyClipboard = results.rows.item(0).email_body;
+                 
                  // Strip the <pre> tags off the string
                  iText = stripTags(emailBodyClipboard);
                  // Send message to chrome with the string (for inserting text)
                  chrome.tabs.sendMessage(tab.id, iText);
+                 
+               //Re-added copy function to store email body into clipboard in case area clicked is not editable
+                 copyEmailBody();
                  
                  onSuccessExecuteSql(tx, results);
                },onError);
@@ -393,9 +408,15 @@ function copyToClipboard( text ){
 
 
 function copyEmailBody() {
-  copyToClipboard(emailBodyClipboard);
+	
+	toggleCopy.checked = localStorage.getItem(toggleCopy) === 'true' ? true:false;
+	
+	if(toggleCopy.checked == true)
+	{
+		copyToClipboard(emailBodyClipboard);
+	}
+	
 }
-
 
 function deleteContextMenuItem(item){
 	
@@ -443,7 +464,8 @@ submitButton.addEventListener('click', function(e){
 			   editName.value	= results.rows.item(0).email_name;
 			   editGroup.value	= results.rows.item(0).email_group;
 			   editBody.value	= stripTags(results.rows.item(0).email_body);
-			   
+			   editButton.disabled = false;
+			   deleteButton.disabled = false;
 			   
 		   },onError);
 		  });
@@ -464,10 +486,12 @@ editButton.addEventListener('click', function(e){
 			 editName.value  = "";
 		     editGroup.value = "";
 		     editBody.value  = "";
+		     editButton.disabled = true;
+			   deleteButton.disabled = true;
 		     getEmailGroupsOnly();
 		     getEmailNamesOnly();
 		     getEmailGroups();
-		     alert("All false context menu items will be removed once you reload the extension or restart Chrome browser");
+		     alert("All Changes may not apply until you reload the extension or restart Chrome browser");
 		});
 	});
 	
@@ -475,7 +499,7 @@ editButton.addEventListener('click', function(e){
 
 /*Event Listener to delete the searched email template*/
 deleteButton.addEventListener('click', function(e){
-	var canDelete = confirm("Are you sure you want to delete? (All false context menu items will be removed once you reload the extension or restart Chrome browser)");
+	var canDelete = confirm("Are you sure you want to delete? (All Changes may not apply until you reload the extension or restart Chrome browser)");
 	
 	if(canDelete == true)
 		{
@@ -491,6 +515,8 @@ deleteButton.addEventListener('click', function(e){
 				     editName.value  = "";
 				     editGroup.value = "";
 				     editBody.value     = "";
+				     editButton.disabled = true;
+					   deleteButton.disabled = true;
 				     getEmailGroupsOnly();
 				     getEmailNamesOnly();
 				});
@@ -529,6 +555,10 @@ toggleButton.addEventListener('click', function(e){
 	
 }, false);
 
+toggleCopy.addEventListener("change",function(e){
+	//Logic to manage the checkbox value
+	localStorage.setItem(toggleCopy,toggleCopy.checked);
+} , false);
 
 ////////////////////////////////
 //End ofEvent Listener section//  
@@ -571,6 +601,4 @@ $("#SearchName").on('click', function(){
 });
 
 modify();
-/*end of Combo Dropdown boxes*/
-
 
